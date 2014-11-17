@@ -30,7 +30,6 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
 
     def handle(self):
         print 'Listening...'
-        self.wfile.write('Hemos recibido tu peticion\r\n\r\n')
         while 1:
             # Leyendo línea a línea lo que nos envía el cliente
             peticion = self.rfile.read()
@@ -43,18 +42,25 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
             #Obtenemos el método del cliente
             metodo = peticion.split()[0]
 
-            
-            if metodo == 'INVITE':
-                self.wfile.write('SIP/2.0 100 TRIYING\r\n\r\n' 
-                               + 'SIP/2.0 180 RING\r\n\r\n' 
-                               + 'SIP/2.0 200 OK\r\n\r\n')
-            elif metodo == 'BYE':
-                self.wfile.write('SIP/2.0 200 OK\r\n\r\n')
-            elif metodo == 'ACK':
-                print 'Vamos a ejecutar', aEjecutar
-                os.system(aEjecutar)
-                print 'Ha terminado la cancion'
-            
+            #Esta en mis metodos?
+            if metodo not in metodos:
+                self.wfile.write('SIP/2.0 400 Method Not Allowed\r\n\r\n')
+            else:
+                #Sigue el estándar SIP?
+                peticion = peticion.split()
+                if peticion[1][:4] == 'sip:' and '@' in peticion[1] and peticion[2] == 'SIP/2.0':
+                    if metodo == 'INVITE':
+                        self.wfile.write('SIP/2.0 100 Trying\r\n\r\n' 
+                                       + 'SIP/2.0 180 Ring\r\n\r\n' 
+                                       + 'SIP/2.0 200 OK\r\n\r\n')
+                    elif metodo == 'BYE':
+                        self.wfile.write('SIP/2.0 200 OK\r\n\r\n')
+                    elif metodo == 'ACK':
+                        print 'Vamos a ejecutar', aEjecutar
+                        os.system(aEjecutar)
+                        print 'Ha terminado la cancion'
+                else:
+                    self.wfile.write('SIP/2.0 405 Bad Request')           
 
             
 if __name__ == "__main__":
