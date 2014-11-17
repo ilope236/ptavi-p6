@@ -17,7 +17,7 @@ try:
     USER = sys.argv[2].split('@')[0]
     IP = sys.argv[2].split('@')[1].split(':')[0]
     PORT = int(sys.argv[2].split(':')[1])
-    if not METODO in metodos:
+    if METODO not in metodos:
         print 'Usage: python client.py method receiver@IP:SIPport'
         raise SystemExit
 except IndexError:
@@ -48,12 +48,16 @@ except socket.error:
 
 print 'Recibido -- ', data
 
-if data.split('\r\n\r\n')[-2] == 'SIP/2.0 200 OK':
-    if METODO == 'INVITE':
-        #Enviamos ACK
-        LINE = 'ACK' + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
-        print "Enviando: " + LINE
-        my_socket.send(LINE + '\r\n')
+data = data.split('\r\n\r\n')
+
+#Comprobamos que han llegado todos los mensajes
+if data[0] == 'SIP/2.0 100 Trying':
+    if data[1] == 'SIP/2.0 180 Ring':
+        if data[2] == 'SIP/2.0 200 OK':
+            #Enviamos ACK
+            LINE = 'ACK' + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
+            print "Enviando: " + LINE
+            my_socket.send(LINE + '\r\n')
 
     print "Terminando socket..."
 
