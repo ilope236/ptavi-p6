@@ -27,9 +27,9 @@ except ValueError:
     print 'Usage: python client.py method receiver@IP:SIPport'
     raise SystemExit
 
-
+#funcion enviar
 # Contenido que vamos a enviar
-LINE = '¡Hola mundo!'
+LINE = METODO + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
 
 # Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -47,8 +47,16 @@ except socket.error:
     raise SystemExit
 
 print 'Recibido -- ', data
-print "Terminando socket..."
 
-# Cerramos todo
-my_socket.close()
-print "Fin."
+if data.split('\r\n\r\n')[-2] == 'SIP/2.0 200 OK':
+    if METODO == 'INVITE':
+        #Enviamos ACK
+        LINE = 'ACK' + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
+        print "Enviando: " + LINE
+        my_socket.send(LINE + '\r\n')
+
+    print "Terminando socket..."
+
+    # Cerramos todo
+    my_socket.close()
+    print "Fin."
