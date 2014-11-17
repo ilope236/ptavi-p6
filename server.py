@@ -6,6 +6,7 @@ Clase (y programa principal) para un servidor de eco en UDP simple
 
 import SocketServer
 import sys
+import os
 
 
 try:
@@ -20,6 +21,7 @@ except ValueError:
     raise SystemExit
 
 metodos = ('INVITE', 'BYE', 'ACK')
+aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 < ' + CANCION
 
 class EchoHandler(SocketServer.DatagramRequestHandler):
     """
@@ -28,21 +30,35 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
 
     def handle(self):
         print 'Listening...'
-        self.wfile.write("Hemos recibido tu peticion\r\n")
+        self.wfile.write('Hemos recibido tu peticion\r\n\r\n')
         while 1:
             # Leyendo línea a línea lo que nos envía el cliente
-            line = self.rfile.read()
+            peticion = self.rfile.read()
 
             # Si no hay más líneas salimos del bucle infinito
-            if not line:
+            if not peticion:
                 break            
-            print "El cliente nos manda " + line
+            print "El cliente nos manda " + peticion
 
             #Obtenemos el método del cliente
-            metodo = line.split()[0]
+            metodo = peticion.split()[0]
+
+            
+            if metodo == 'INVITE':
+                self.wfile.write('SIP/2.0 100 TRIYING\r\n\r\n' 
+                               + 'SIP/2.0 180 RING\r\n\r\n' 
+                               + 'SIP/2.0 200 OK\r\n\r\n')
+            elif metodo == 'BYE':
+                self.wfile.write('SIP/2.0 200 OK\r\n\r\n')
+            elif metodo == 'ACK':
+                print 'Vamos a ejecutar', aEjecutar
+                os.system(aEjecutar)
+                print 'Ha terminado la cancion'
+            
+
             
 if __name__ == "__main__":
     # Creamos servidor de eco y escuchamos
     serv = SocketServer.UDPServer(("", PORT), EchoHandler)
-    print "Lanzando servidor UDP de eco..."
+    print "Lanzando servidor..."
     serv.serve_forever()
