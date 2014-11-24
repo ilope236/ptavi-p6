@@ -27,17 +27,22 @@ except ValueError:
     print 'Usage: python client.py method receiver@IP:SIPport'
     raise SystemExit
 
-#funcion enviar
-# Contenido que vamos a enviar
-LINE = METODO + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
+
+def enviar_peticion(metodo):
+    """
+    Función que crea las peticiones y las envía
+    """
+    peticion = metodo + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
+    print "Enviando: " + peticion
+    my_socket.send(peticion + '\r\n')
 
 # Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 my_socket.connect((IP, PORT))
 
-print "Enviando: " + LINE
-my_socket.send(LINE + '\r\n')
+# Enviamos la peticion
+enviar_peticion(METODO)
 
 #Comprobamos que se escucha en el servidor
 try:
@@ -55,12 +60,10 @@ if data[0] == 'SIP/2.0 100 Trying':
     if data[1] == 'SIP/2.0 180 Ring':
         if data[2] == 'SIP/2.0 200 OK':
             #Enviamos ACK
-            LINE = 'ACK' + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
-            print "Enviando: " + LINE
-            my_socket.send(LINE + '\r\n')
+            enviar_peticion('ACK')
 
-    print "Terminando socket..."
+print "Terminando socket..."
 
-    # Cerramos todo
-    my_socket.close()
-    print "Fin."
+# Cerramos todo
+my_socket.close()
+print "Fin."
