@@ -30,7 +30,6 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
     """
 
     def handle(self):
-        print 'Listening...'
         while 1:
             # Leyendo línea a línea lo que nos envía el cliente
             peticion = self.rfile.read()
@@ -38,7 +37,7 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
             # Si no hay más líneas salimos del bucle infinito
             if not peticion:
                 break
-            print "El cliente nos manda " + peticion
+            print "El cliente nos manda: " + peticion
 
             #Obtenemos el método del cliente
             metodo = peticion.split()[0]
@@ -46,27 +45,34 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
             #Esta en mis metodos?
             if metodo not in metodos:
                 self.wfile.write('SIP/2.0 400 Method Not Allowed\r\n\r\n')
+                print 'Enviamos: SIP/2.0 400 Method Not Allowed\r\n\r\n'
             else:
-                #Sigue el estándar SIP?
+                #La petición sigue el estándar SIP?
                 peticion = peticion.split()
-                if peticion[1][:4] == 'sip:':
-                    if '@' in peticion[1] and peticion[2] == 'SIP/2.0':
-                        if metodo == 'INVITE':
-                            self.wfile.write('SIP/2.0 100 Trying\r\n\r\n'
-                                             + 'SIP/2.0 180 Ring\r\n\r\n'
-                                             + 'SIP/2.0 200 OK\r\n\r\n')
-                        elif metodo == 'BYE':
-                            self.wfile.write('SIP/2.0 200 OK\r\n\r\n')
-                        elif metodo == 'ACK':
-                            print 'Vamos a ejecutar', aEjecutar
-                            os.system(aEjecutar)
-                            print 'Ha terminado la cancion'
+                sip = peticion[1][:4]
+                version = peticion[2]
+                logip = peticion[1]
+                if sip == 'sip:' and '@' in logip and version == 'SIP/2.0':
+                    if metodo == 'INVITE':
+                        self.wfile.write('SIP/2.0 100 Trying\r\n\r\n'
+                                         + 'SIP/2.0 180 Ringing\r\n\r\n'
+                                         + 'SIP/2.0 200 OK\r\n\r\n')
+                        print ('Enviamos: SIP/2.0 100 Trying\r\n\r\n'
+                               + 'Enviamos: SIP/2.0 180 Ringing\r\n\r\n'
+                               + 'Enviamos: SIP/2.0 200 OK\r\n\r\n')
+                    elif metodo == 'BYE':
+                        self.wfile.write('SIP/2.0 200 OK\r\n\r\n')
+                        print 'Enviamos: SIP/2.0 200 OK\r\n\r\n'
+                    elif metodo == 'ACK':
+                        print 'Vamos a ejecutar', aEjecutar
+                        os.system(aEjecutar)
+                        print 'Ha terminado la cancion\r\n'
                 else:
-                    self.wfile.write('SIP/2.0 405 Bad Request')
-
+                    self.wfile.write('SIP/2.0 405 Bad Request\r\n\r\n')
+                    print 'Enviamos: SIP/2.0 405 Bad Request\r\n\r\n'
 
 if __name__ == "__main__":
     # Creamos servidor de eco y escuchamos
     serv = SocketServer.UDPServer(("", PORT), EchoHandler)
-    print "Lanzando servidor..."
+    print 'Listening...'
     serv.serve_forever()
