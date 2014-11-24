@@ -23,6 +23,7 @@ except ValueError:
 metodos = ('INVITE', 'BYE', 'ACK')
 aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 < ' + CANCION
 
+
 class EchoHandler(SocketServer.DatagramRequestHandler):
     """
     SIP Server
@@ -36,7 +37,7 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
 
             # Si no hay más líneas salimos del bucle infinito
             if not peticion:
-                break            
+                break
             print "El cliente nos manda " + peticion
 
             #Obtenemos el método del cliente
@@ -48,21 +49,22 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
             else:
                 #Sigue el estándar SIP?
                 peticion = peticion.split()
-                if peticion[1][:4] == 'sip:' and '@' in peticion[1] and peticion[2] == 'SIP/2.0':
-                    if metodo == 'INVITE':
-                        self.wfile.write('SIP/2.0 100 Trying\r\n\r\n' 
-                                       + 'SIP/2.0 180 Ring\r\n\r\n' 
-                                       + 'SIP/2.0 200 OK\r\n\r\n')
-                    elif metodo == 'BYE':
-                        self.wfile.write('SIP/2.0 200 OK\r\n\r\n')
-                    elif metodo == 'ACK':
-                        print 'Vamos a ejecutar', aEjecutar
-                        os.system(aEjecutar)
-                        print 'Ha terminado la cancion'
+                if peticion[1][:4] == 'sip:':
+                    if '@' in peticion[1] and peticion[2] == 'SIP/2.0':
+                        if metodo == 'INVITE':
+                            self.wfile.write('SIP/2.0 100 Trying\r\n\r\n'
+                                             + 'SIP/2.0 180 Ring\r\n\r\n'
+                                             + 'SIP/2.0 200 OK\r\n\r\n')
+                        elif metodo == 'BYE':
+                            self.wfile.write('SIP/2.0 200 OK\r\n\r\n')
+                        elif metodo == 'ACK':
+                            print 'Vamos a ejecutar', aEjecutar
+                            os.system(aEjecutar)
+                            print 'Ha terminado la cancion'
                 else:
-                    self.wfile.write('SIP/2.0 405 Bad Request')           
+                    self.wfile.write('SIP/2.0 405 Bad Request')
 
-            
+
 if __name__ == "__main__":
     # Creamos servidor de eco y escuchamos
     serv = SocketServer.UDPServer(("", PORT), EchoHandler)
