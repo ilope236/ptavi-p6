@@ -32,9 +32,9 @@ def enviar_peticion(metodo):
     """
     Función que crea las peticiones y las envía
     """
-    peticion = metodo + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n'
+    peticion = metodo + ' sip:' + USER + '@' + IP + ' SIP/2.0\r\n\r\n'
     print "Enviando: " + peticion
-    my_socket.send(peticion + '\r\n')
+    my_socket.send(peticion)
 
 # Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -57,13 +57,12 @@ data = data.split('\r\n\r\n')
 
 #Comprobamos que han llegado todos los mensajes
 if data[0] == 'SIP/2.0 100 Trying':
-    if data[1] == 'SIP/2.0 180 Ring':
+    if data[1] == 'SIP/2.0 180 Ringing':
         if data[2] == 'SIP/2.0 200 OK':
             #Enviamos ACK
             enviar_peticion('ACK')
 
-print "Terminando socket..."
-
 # Cerramos todo
+
 my_socket.close()
 print "Fin."
